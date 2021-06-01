@@ -61,7 +61,7 @@ def diff_testing():
                               f"Option: -{option}\n"
                               f"Source: {source_file}\n"
                               f"Subprocess error output:\n"
-                              f"{compile_command.stderr}",
+                              f"{compile_command.stderr.decode('utf-8')}",
                               file=sys.stderr)
                         exit(1)
 
@@ -79,7 +79,7 @@ def diff_testing():
                                   f"Source: {source_file}\n"
                                   f"Executable: {program_name}\n"
                                   f"Subprocoess error output:\n"
-                                  f"{run_command.stderr}",
+                                  f"{run_command.stderr.decode('utf-8')}",
                                   file=sys.stderr)
                             exit(1)
 
