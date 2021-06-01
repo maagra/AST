@@ -1,0 +1,6 @@
+.idea/
+venv/
+**/bin/
+**/inputs/
+**/outputs/
+**/unique/
