@@ -4,20 +4,20 @@
 #define BUFSIZE 20
 
 int main(int argc, char *argv[]){
-	int *input = (int *) malloc(6*sizeof(int));
+    int nr_inputs = 6;
+	int *input = (int *) calloc(nr_inputs, sizeof(int));
 
 	//printf("file name: %s\n", argv[1]);
 	FILE *f = fopen(argv[1], "r");
-		
+
 	char buff[20]; /* a buffer to hold what you read in */
 
 	int i = 0;
-	while(fgets(buff, BUFSIZE - 1, f) != NULL) {
-		//printf ("%s\n", buff); 
+	while((fgets(buff, BUFSIZE - 1, f) != NULL) && i < nr_inputs) {
 		input[i] = atoi(buff);
-		//printf("input[%d]: %d\n", i, input[i]);
 		i++;
 	}
+
 	fclose(f); /* close the file */ 
 
 	int a = input[0];
@@ -33,6 +33,7 @@ int main(int argc, char *argv[]){
 	}
 	printf("This is our c: %d\n", c);
 
+	free(input);
 }
 
 
