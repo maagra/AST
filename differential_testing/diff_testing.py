@@ -13,14 +13,20 @@ def diff_testing():
             "O0",
             "O1",
             "O2",
-            "O3"
+            "O3",
+            "Os",
+            "Ofast",
+            "Og"
         ],
-        # "clang": [
-        #     "O0",
-        #     "O1",
-        #     "O2",
-        #     "O3"
-        # ]
+        "clang": [
+            "O0",
+            "O1",
+            "O2",
+            "O3",
+            "Os",
+            "Ofast",
+            "Oz"
+        ]
     }
 
     matches = 0
