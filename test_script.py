@@ -9,6 +9,7 @@ from differential_testing.diff_testing import diff_testing
 
 RANDOM_PROGRAM_COUNT = 10
 AFL_FUZZING_DURATION = 10
+CSMITH_INCLUDE_DIRECTORY = "/home/sgruebel/installations/csmith/include"
 
 
 def setup_test():
@@ -129,7 +130,7 @@ def run_tests():
     transfer_s2s_to_afl()
 
     # STEP 3: AFL fuzzing
-    afl_find_inputs(AFL_FUZZING_DURATION)
+    afl_find_inputs(AFL_FUZZING_DURATION, CSMITH_INCLUDE_DIRECTORY)
 
     # TRANSFER 3: AFL -> Diff
     transfer_afl_to_diff()

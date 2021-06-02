@@ -2,11 +2,17 @@ import os
 import shutil
 import subprocess
 import sys
+from typing import Optional
 
 
-def afl_find_inputs(fuzzing_duration: int = 10):
+def afl_find_inputs(fuzzing_duration: int = 10, include_directory: Optional[str] = None):
     base_path = os.path.dirname(os.path.realpath(__file__))
     base_entry: os.DirEntry
+
+    if include_directory is None:
+        include_directory = "./"
+    elif not include_directory.endswith("/"):
+        include_directory += "/"
 
     for base_entry in os.scandir(os.path.join(base_path, "programs")):
         if base_entry.is_dir():
@@ -36,7 +42,8 @@ def afl_find_inputs(fuzzing_duration: int = 10):
             print(f"Starting fuzzing process of program \"{base_entry.name}\"")
 
             # Compile the source file with AFL++
-            compile_command = subprocess.run(["afl-gcc-fast", "-o", bin_file, source_file], capture_output=True)
+            compile_command = subprocess.run(["afl-gcc-fast", "-o", bin_file, source_file, f"-I{include_directory}"],
+                                             capture_output=True)
 
             if compile_command.returncode != 0:
                 print(f"Could not compile source code for AFL++!\n"
@@ -58,15 +65,19 @@ def afl_find_inputs(fuzzing_duration: int = 10):
                                          capture_output=True)
 
             if afl_command.returncode != 0:
-                print(f"Could not run AFL++ on the compiled program!\n"
-                      f"This is a major error, the script is terminated.\n"
-                      f"Here is some info that might help with finding the problem:\n"
-                      f"Source: {source_file}\n"
-                      f"Binary: {bin_file}\n"
-                      f"Subprocess error output:\n"
-                      f"{afl_command.stdout.decode('utf-8')}",
-                      file=sys.stderr)
-                exit(1)
+                if "The program took more than 1000 ms to process one of the initial test cases" in afl_command.stdout.decode("utf-8"):
+                    print(f"The program \"{base_entry.name}\" might contain infinite loops! Skipping...")
+                    continue
+                else:
+                    print(f"Could not run AFL++ on the compiled program!\n"
+                          f"This is a major error, the script is terminated.\n"
+                          f"Here is some info that might help with finding the problem:\n"
+                          f"Source: {source_file}\n"
+                          f"Binary: {bin_file}\n"
+                          f"Subprocess error output:\n"
+                          f"{afl_command.stdout.decode('utf-8')}",
+                          file=sys.stderr)
+                    exit(1)
 
             # Run afl-cmin to get minimal test inputs
             cmin_command = subprocess.run(["afl-cmin", "-i", queue_dir_path, "-o",
