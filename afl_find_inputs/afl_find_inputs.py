@@ -3,10 +3,8 @@ import shutil
 import subprocess
 import sys
 
-AFL_FUZZING_TIMEOUT = 10
 
-
-def afl_find_inputs():
+def afl_find_inputs(fuzzing_duration: int = 10):
     base_path = os.path.dirname(os.path.realpath(__file__))
     base_entry: os.DirEntry
 
@@ -55,7 +53,8 @@ def afl_find_inputs():
             shutil.copyfile(input_file_src, input_file_dst)
 
             # Run AFL++ on the compiled executable
-            afl_command = subprocess.run(["afl-fuzz", "-i", input_dir_path, "-o", output_dir_path, "-V", str(AFL_FUZZING_TIMEOUT), "--", bin_file, "@@"],
+            afl_command = subprocess.run(["afl-fuzz", "-i", input_dir_path, "-o", output_dir_path,
+                                          "-V", str(fuzzing_duration), "--", bin_file, "@@"],
                                          capture_output=True)
 
             if afl_command.returncode != 0:
@@ -70,7 +69,8 @@ def afl_find_inputs():
                 exit(1)
 
             # Run afl-cmin to get minimal test inputs
-            cmin_command = subprocess.run(["afl-cmin", "-i", queue_dir_path, "-o", unique_dir_path, "--", bin_file, "@@"],
+            cmin_command = subprocess.run(["afl-cmin", "-i", queue_dir_path, "-o",
+                                           unique_dir_path, "--", bin_file, "@@"],
                                           capture_output=True)
 
             if cmin_command.returncode != 0:
