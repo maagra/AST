@@ -45,7 +45,7 @@ def afl_find_inputs(fuzzing_duration: int = 10):
                       f"Source: {source_file}\n"
                       f"Binary: {bin_file}\n"
                       f"Subprocess error output:\n"
-                      f"{compile_command.stderr}",
+                      f"{compile_command.stderr.decode('utf-8')}",
                       file=sys.stderr)
                 exit(1)
 
