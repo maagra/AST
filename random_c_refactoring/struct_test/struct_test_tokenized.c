@@ -40,7 +40,7 @@ int main(int argc, char *argv[]){
 	//printf("file name: %s\n", argv[1]);
 	FILE *f = fopen(argv[1], "r");
 
-	char buff[200]; /* a buffer to hold what you read in */
+	char buff[BUFSIZE]; /* a buffer to hold what you read in */
 
 	int i = 0;
 	while((fgets(buff, BUFSIZE - 1, f) != NULL) && i < nr_inputs) {
