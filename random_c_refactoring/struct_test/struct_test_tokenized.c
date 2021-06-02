@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define BUFSIZE 20
+#define BUFSIZE 100
 
 
 // the number after : specifies bitlength of field; bitlength cannot exceed length of type e.g. int = 32 bits max
