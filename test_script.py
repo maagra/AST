@@ -93,20 +93,25 @@ def transfer_afl_to_diff():
         if program_entry.is_dir():
             program_dst_path = os.path.join(dst_path, program_entry.name)
 
+            program_src_file = os.path.join(program_entry.path, f"{program_entry.name}.c")
+            program_dst_file = os.path.join(program_dst_path, f"{program_entry.name}.c")
+            unique_dst_path = os.path.join(program_dst_path, "inputs")
+            unique_src_path = os.path.join(program_entry.path, "unique")
+
+            unique_dir_scanner = list(os.scandir(unique_src_path))
+            if len(unique_dir_scanner) == 0:
+                print(f"The \"unique\" directory of \"{program_entry.name}\" is empty. Not copying...")
+                continue
+
             if not os.path.exists(program_dst_path):
                 os.mkdir(program_dst_path)
 
-            program_src_file = os.path.join(program_entry.path, f"{program_entry.name}.c")
-            program_dst_file = os.path.join(program_dst_path, f"{program_entry.name}.c")
             shutil.copy(program_src_file, program_dst_file)
-
-            unique_src_path = os.path.join(program_entry.path, "unique")
-            unique_dst_path = os.path.join(program_dst_path, "inputs")
 
             if not os.path.exists(unique_dst_path):
                 os.mkdir(unique_dst_path)
 
-            for i, input_entry in enumerate(os.scandir(unique_src_path)):
+            for i, input_entry in enumerate(unique_dir_scanner):
                 if input_entry.is_file():
                     input_src_file = input_entry.path
                     input_dst_file = os.path.join(unique_dst_path, f"unique_input_{i}")
@@ -136,7 +141,7 @@ def run_tests():
     transfer_afl_to_diff()
 
     # STEP 4: Differential testing
-    diff_testing()
+    diff_testing(CSMITH_INCLUDE_DIRECTORY)
 
 
 if __name__ == '__main__':

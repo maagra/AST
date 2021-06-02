@@ -1,12 +1,18 @@
 import os
 import subprocess
 import sys
+from typing import Optional
 
 
-def diff_testing():
+def diff_testing(include_directory: Optional[str] = None):
     base_path = os.path.dirname(os.path.realpath(__file__))
     base_entry: os.DirEntry  # Type hint for entry variable
     input_entry: os.DirEntry
+
+    if include_directory is None:
+        include_directory = "./"
+    elif not include_directory.endswith("/"):
+        include_directory += "/"
 
     compiler_options = {
         "gcc": [
@@ -50,7 +56,7 @@ def diff_testing():
                 for option in options:
                     # Compile source with given compiler and options
                     program_name = os.path.join(bin_path, f"{compiler}_{option}")
-                    compile_command = subprocess.run([compiler, f"-{option}", "-o", program_name, source_file],
+                    compile_command = subprocess.run([compiler, f"-{option}", "-o", program_name, source_file, f"-I{include_directory}"],
                                                      capture_output=True)
 
                     if compile_command.returncode != 0:
