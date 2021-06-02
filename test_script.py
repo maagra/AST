@@ -85,6 +85,9 @@ def transfer_afl_to_diff():
     program_entry: os.DirEntry
     input_entry: os.DirEntry
 
+    if not os.path.exists(dst_path):
+        os.mkdir(dst_path)
+
     for program_entry in os.scandir(src_path):
         if program_entry.is_dir():
             program_dst_path = os.path.join(dst_path, program_entry.name)
