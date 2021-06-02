@@ -34,6 +34,7 @@ int main(int argc, char *argv[]){
 	printf("This is our c: %d\n", c);
 
 	free(input);
+	return 0;
 }
 
 
