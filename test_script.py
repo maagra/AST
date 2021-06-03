@@ -7,8 +7,8 @@ from source_to_source_translation.source_to_source_translation import source_to_
 from afl_find_inputs.afl_find_inputs import afl_find_inputs
 from differential_testing.diff_testing import diff_testing
 
-RANDOM_PROGRAM_COUNT = 10
-AFL_FUZZING_DURATION = 10
+RANDOM_PROGRAM_COUNT = 5
+AFL_FUZZING_DURATION = 900  # in seconds -> 15 minutes
 CSMITH_INCLUDE_DIRECTORY = "/home/sgruebel/installations/csmith/include"
 
 

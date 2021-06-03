@@ -5,7 +5,7 @@ import sys
 from typing import Optional
 
 
-def afl_find_inputs(fuzzing_duration: int = 10, include_directory: Optional[str] = None):
+def afl_find_inputs(fuzzing_duration: int = 900, include_directory: Optional[str] = None):
     base_path = os.path.dirname(os.path.realpath(__file__))
     base_entry: os.DirEntry
 

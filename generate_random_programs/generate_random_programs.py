@@ -3,7 +3,7 @@ import subprocess
 import sys
 
 
-def generate_random_programs(program_count: int = 10):
+def generate_random_programs(program_count: int = 5):
     base_path = os.path.dirname(os.path.realpath(__file__))
     output_path = os.path.join(base_path, "random_programs")
 
