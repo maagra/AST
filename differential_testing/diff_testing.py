@@ -131,7 +131,8 @@ def diff_testing(include_directory: Optional[str] = None):
                         elif this_output != reference_output:
                             print(f"Mismatch found in {output_file}!\n"
                                   f"\t Current: {compiler} with option -{option}\n"
-                                  f"\t Reference: {reference_compiler} with option -{reference_option}")
+                                  f"\t Reference: {reference_compiler} with option -{reference_option}",
+                                  file=sys.stderr)
                             mismatches += 1
                         else:
                             matches += 1
