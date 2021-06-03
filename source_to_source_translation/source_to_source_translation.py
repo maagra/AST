@@ -9,16 +9,17 @@ from typing import List, Dict
 class ParserState(Enum):
     START = 0
     WAITING_FOR_STRUCTS = 1
-    PARSING_STRUCTS = 2
+    PARSING_STRUCTS_UNIONS = 2
     PARSING_STRUCT = 3
-    PARSING_GLOBAL_VARIABLES = 4
-    WAITING_FOR_MAIN = 5
-    INSERT_CODE = 6
-    DONE = 7
+    PARSING_UNION = 4
+    PARSING_GLOBAL_VARIABLES = 5
+    WAITING_FOR_MAIN = 6
+    INSERT_CODE = 7
+    DONE = 8
 
 
 @dataclass
-class StructField:
+class StructUnionField:
     name: str
     type: str
     is_const: bool
@@ -31,6 +32,7 @@ class GlobalVariable:
     name: str
     type: str
     is_struct: bool
+    is_union: bool
     is_volatile: bool
     dimensions: List[int]
 
@@ -72,7 +74,8 @@ def source_to_source_translation():
             state = ParserState.START
             new_source_code = ""
             current_struct_name = ""
-            structs: Dict[str, List[StructField]] = dict()
+            structs: Dict[str, List[StructUnionField]] = dict()
+            unions: Dict[str, List[StructUnionField]] = dict()
             variables: List[GlobalVariable] = []
 
             with open(base_entry, "r") as f:
@@ -85,31 +88,39 @@ def source_to_source_translation():
                             state = ParserState.WAITING_FOR_STRUCTS
                     elif state == ParserState.WAITING_FOR_STRUCTS:
                         if line.startswith(begin_struct_string):
-                            state = ParserState.PARSING_STRUCTS
+                            state = ParserState.PARSING_STRUCTS_UNIONS
                         elif line.startswith(begin_global_var_string):
                             state = ParserState.PARSING_GLOBAL_VARIABLES
                         elif line.startswith(end_global_var_string):
                             state = ParserState.WAITING_FOR_MAIN
-                    elif state == ParserState.PARSING_STRUCTS:
+                    elif state == ParserState.PARSING_STRUCTS_UNIONS:
                         if line.startswith(begin_global_var_string):
                             state = ParserState.PARSING_GLOBAL_VARIABLES
                         elif line.startswith(end_global_var_string):
                             state = ParserState.WAITING_FOR_MAIN
-                        elif m := re.match(r"^struct\s+(?P<struct_name>S[0-9]+)\s+{$", line):
+                        elif m := re.match(r"^struct\s+(?P<name>S[0-9]+)\s+{$", line):
                             state = ParserState.PARSING_STRUCT
-                            current_struct_name = m.group("struct_name")
+                            current_struct_name = m.group("name")
                             structs[current_struct_name] = []
-                    elif state == ParserState.PARSING_STRUCT:
+                        elif m := re.match(r"^union\s+(?P<name>U[0-9]+)\s+{$", line):
+                            state = ParserState.PARSING_UNION
+                            current_struct_name = m.group("name")
+                            unions[current_struct_name] = []
+                    elif state in {ParserState.PARSING_STRUCT, ParserState.PARSING_UNION}:
                         if line.startswith("};"):
-                            state = ParserState.PARSING_STRUCTS
+                            state = ParserState.PARSING_STRUCTS_UNIONS
                         elif m := re.match(r"^\s+(?P<is_const>const)?\s*(?P<is_volatile>volatile)?\s*(?P<type>[a-z0-9_]+)\s+(?P<name>f[0-9]+)( : (?P<bits>[0-9]+))?;$", line):
-                            structs[current_struct_name].append(StructField(
+                            suf = StructUnionField(
                                 name=m.group("name"),
                                 type=m.group("type"),
                                 is_const=m.group("is_const") is not None,
                                 is_volatile=m.group("is_volatile") is not None,
                                 bits=-1 if m.group("bits") is None else m.group("bits")
-                            ))
+                            )
+                            if state == ParserState.PARSING_STRUCT:
+                                structs[current_struct_name].append(suf)
+                            else:
+                                unions[current_struct_name].append(suf)
                     elif state == ParserState.PARSING_GLOBAL_VARIABLES:
                         if line.startswith(end_global_var_string):
                             state = ParserState.WAITING_FOR_MAIN
@@ -125,6 +136,7 @@ def source_to_source_translation():
                                 name=m.group("name"),
                                 type=m.group("type"),
                                 is_struct=False,
+                                is_union=False,
                                 is_volatile=m.group("is_volatile") is not None,
                                 dimensions=dimensions
                             ))
@@ -140,6 +152,23 @@ def source_to_source_translation():
                                 name=m.group("name"),
                                 type=m.group("type"),
                                 is_struct=True,
+                                is_union=False,
+                                is_volatile=m.group("is_volatile") is not None,
+                                dimensions=dimensions
+                            ))
+                        elif m := re.match(r"^static\s+(?P<is_volatile>volatile)?\s*union\s+(?P<type>U[0-9]+)\s+(?P<name>[a-z0-9_]+)(?P<dimensions>(\[[0-9+]\])+)?\s+=", line):
+                            dimensions = m.group("dimensions")
+
+                            if dimensions is None:
+                                dimensions = []
+                            else:
+                                dimensions = list(map(int, dimensions[1:-1].split("][")))
+
+                            variables.append(GlobalVariable(
+                                name=m.group("name"),
+                                type=m.group("type"),
+                                is_struct=False,
+                                is_union=True,
                                 is_volatile=m.group("is_volatile") is not None,
                                 dimensions=dimensions
                             ))
@@ -163,6 +192,13 @@ def source_to_source_translation():
                                         if not field.is_const:
                                             assignment_code += indented_line(f"{var.name}{idx}.{field.name} = s2s_input[{assignment_idx}];")
                                             assignment_idx += 1
+                                elif var.is_union:
+                                    # Only assign values to union variables that do not have any constant fields
+                                    # this otherwise might lead to undefined behaviour
+                                    # See: https://stackoverflow.com/a/5653650/4563608
+                                    if not any(map(lambda uf: uf.is_const, unions[var.type])):
+                                        assignment_code += indented_line(f"{var.name}{idx}.{unions[var.type][0].name} = s2s_input[{assignment_idx}];")
+                                        assignment_idx += 1
                                 else:
                                     assignment_code += indented_line(f"{var.name}{idx} = s2s_input[{assignment_idx}];")
                                     assignment_idx += 1
