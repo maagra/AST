@@ -12,7 +12,8 @@ AFL_FUZZING_DURATION = 900  # in seconds -> 15 minutes
 CSMITH_INCLUDE_DIRECTORY = "/home/sgruebel/installations/csmith/include"
 
 
-def setup_test():
+def setup_test(csmith_include: str):
+    # Check if all required programs are found
     required_programs = [
         "csmith",
         "afl-gcc-fast",
@@ -26,6 +27,21 @@ def setup_test():
               "The following programs are required:", file=sys.stderr)
         for p, f in zip(required_programs, found):
             print(f"- \"{p}\" ({'found...' if f else 'not found!'})", file=sys.stderr)
+        exit(1)
+
+    # Check if the provided CSmith include directory contains csmith.h
+    if not os.path.exists(csmith_include):
+        print(f"Oops, seems like your setup is not quite ready for this...\n"
+              f"The provided include directory for CSmith does not exist!\n"
+              f"You provided: {csmith_include}", file=sys.stderr)
+        exit(1)
+
+    header_file_path = os.path.join(csmith_include, "csmith.h")
+
+    if not os.path.exists(header_file_path) or not os.path.isfile(header_file_path):
+        print(f"Oops, seems like your setup is not quite ready for this...\n"
+              f"The provided include directory for CSmith does not contain a file named \"csmith.h\"!\n"
+              f"You provided: {csmith_include}", file=sys.stderr)
         exit(1)
 
 
@@ -120,7 +136,7 @@ def transfer_afl_to_diff():
 
 def run_tests():
     # STEP 0: Setup checker
-    setup_test()
+    setup_test(CSMITH_INCLUDE_DIRECTORY)
 
     # STEP 1: Generate random C programs
     generate_random_programs(RANDOM_PROGRAM_COUNT)
