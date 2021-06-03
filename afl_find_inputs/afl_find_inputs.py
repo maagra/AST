@@ -39,7 +39,8 @@ def afl_find_inputs(fuzzing_duration: int = 900, include_directory: Optional[str
                 os.mkdir(bin_dir_path)
 
             # Process output
-            print(f"Starting fuzzing process of program \"{base_entry.name}\"")
+            print(f"Starting fuzzing process of program \"{base_entry.name}\". "
+                  f"This will take approximately {fuzzing_duration} seconds")
 
             # Compile the source file with AFL++
             compile_command = subprocess.run(["afl-gcc-fast", "-o", bin_file, source_file, f"-I{include_directory}"],
