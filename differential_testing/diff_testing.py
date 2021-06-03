@@ -45,6 +45,8 @@ def diff_testing(include_directory: Optional[str] = None):
             output_path = os.path.join(base_entry, "outputs")
             bin_path = os.path.join(base_entry, "bin")
 
+            print(f"Compiling program \"{base_entry.name}\" with all configured options and running for all inputs")
+
             if not os.path.exists(output_path):
                 os.mkdir(output_path)
 
@@ -55,6 +57,7 @@ def diff_testing(include_directory: Optional[str] = None):
             for compiler, options in compiler_options.items():
                 for option in options:
                     # Compile source with given compiler and options
+                    print(f"- Compiling with compiler \"{compiler}\" and option \"-{option}\"")
                     program_name = os.path.join(bin_path, f"{compiler}_{option}")
                     compile_command = subprocess.run([compiler, f"-{option}", "-o", program_name, source_file, f"-I{include_directory}"],
                                                      capture_output=True)
@@ -70,6 +73,8 @@ def diff_testing(include_directory: Optional[str] = None):
                               f"{compile_command.stderr.decode('utf-8')}",
                               file=sys.stderr)
                         exit(1)
+
+                    print(f"- Running binary on all inputs")
 
                     # For every input -> Run compiled program with
                     for input_entry in os.scandir(input_path):
@@ -93,6 +98,8 @@ def diff_testing(include_directory: Optional[str] = None):
 
                         with open(output_file, "w+") as f:
                             f.write(run_command.stdout.decode("utf-8"))
+
+            print(f"Finished running all variations of program \"{base_entry.name}\". Verifying output now...")
 
             # Loop over all input files and check the corresponding output files for every compiler
             for input_entry in os.scandir(input_path):
@@ -139,7 +146,7 @@ def diff_testing(include_directory: Optional[str] = None):
     if mismatches == 0:
         print("All compilations agree")
     else:
-        print("There seem to be mismatches! Check above for which output files do not match...")
+        print("There seem to be mismatches! Check stderr for which output files do not match...")
 
 
 if __name__ == '__main__':
