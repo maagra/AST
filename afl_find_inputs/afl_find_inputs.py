@@ -65,7 +65,8 @@ def afl_find_inputs(fuzzing_duration: int = 10, include_directory: Optional[str]
                                          capture_output=True)
 
             if afl_command.returncode != 0:
-                if "The program took more than 1000 ms to process one of the initial test cases" in afl_command.stdout.decode("utf-8"):
+                afl_command_out = afl_command.stdout.decode("utf-8")
+                if "The program took more than 1000 ms to process one of the initial test cases" in afl_command_out:
                     print(f"The program \"{base_entry.name}\" might contain infinite loops! Skipping...")
                     continue
                 else:
@@ -75,7 +76,7 @@ def afl_find_inputs(fuzzing_duration: int = 10, include_directory: Optional[str]
                           f"Source: {source_file}\n"
                           f"Binary: {bin_file}\n"
                           f"Subprocess error output:\n"
-                          f"{afl_command.stdout.decode('utf-8')}",
+                          f"{afl_command_out}",
                           file=sys.stderr)
                     exit(1)
 
@@ -93,7 +94,7 @@ def afl_find_inputs(fuzzing_duration: int = 10, include_directory: Optional[str]
                       f"Queue: {queue_dir_path}\n"
                       f"Unique: {unique_dir_path}\n"
                       f"Subprocess error output:\n"
-                      f"{afl_command.stdout.decode('utf-8')}",
+                      f"{cmin_command.stdout.decode('utf-8')}",
                       file=sys.stderr)
                 exit(1)
 

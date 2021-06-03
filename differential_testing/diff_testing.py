@@ -59,8 +59,9 @@ def diff_testing(include_directory: Optional[str] = None):
                     # Compile source with given compiler and options
                     print(f"- Compiling with compiler \"{compiler}\" and option \"-{option}\"")
                     program_name = os.path.join(bin_path, f"{compiler}_{option}")
-                    compile_command = subprocess.run([compiler, f"-{option}", "-o", program_name, source_file, f"-I{include_directory}"],
-                                                     capture_output=True)
+                    compile_command = subprocess.run([
+                        compiler, f"-{option}", "-o", program_name, source_file, f"-I{include_directory}"
+                    ], capture_output=True)
 
                     if compile_command.returncode != 0:
                         print(f"Could not compile source code!\n"
