@@ -1,0 +1,4 @@
+# environment variables:
+AFL_KILL_SIGNAL=9
+# command line:
+'afl-fuzz' '-i' '/home/rahel/Documents/AST/afl_find_inputs/programs/random_program_2/inputs' '-o' '/home/rahel/Documents/AST/afl_find_inputs/programs/random_program_2/outputs' '-V' '1200' '--' '/home/rahel/Documents/AST/afl_find_inputs/programs/random_program_2/bin/random_program_2' '@@'

@@ -28,7 +28,7 @@ struct S1 g6 = {4,5,6};
 
 
 
-int main(int argc, char *argv){
+int main(int argc, char *argv[]){
 	if (g2[1] + g3.f0 < 45){
 		printf("g2[1] + g3.f0 < 45)\n");
 	} else if (g5.f1.f1 == g3.f1){
